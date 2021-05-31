@@ -21,25 +21,61 @@
             Console.WriteLine($"Server started on port {port}...");
             Console.WriteLine("Awaiting for requests...");
 
-            var connection = await serverListener.AcceptTcpClientAsync();
+            while (true)
+            {
+                var connection = await serverListener.AcceptTcpClientAsync();
 
-            var networkStream = connection.GetStream();
+                var networkStream = connection.GetStream();
 
-            var content = $"<h1>Hello from my server!</h1>";
-            var contentLength = Encoding.UTF8.GetByteCount(content);
+                var bufferLenght = 1024;
+                var buffer = new byte[bufferLenght];
+                var totalBytesRead = 0;
+                var requestBuilder = new StringBuilder();
+                while (networkStream.DataAvailable)
+                {
+                    var bytesRead = await networkStream.ReadAsync(buffer,0,bufferLenght);
 
-            var response = @$"HTTP/1.1 200 OK
+                    totalBytesRead += bytesRead;
+
+                    if (totalBytesRead > 10 * 1024)
+                    {
+                        //TODO: Implement HTTP status code 431
+                        connection.Close();
+                    }
+                    requestBuilder.AppendLine(Encoding.UTF8.GetString(buffer,0,bytesRead));
+                }
+                Console.WriteLine(requestBuilder.ToString());
+
+                var content = $@"<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+    <link rel=""icon"" href=""data:,"">
+</head>
+   
+
+<body>
+<h1>Heading of my server</h1>
+</body>
+   
+
+</html>";
+                var contentLength = Encoding.UTF8.GetByteCount(content);
+
+                var response = @$"HTTP/1.1 200 OK
+Server: MyServer
 Date: {DateTime.UtcNow:r}
 Content-Length: {contentLength}
 Content-Type: text/html;charset=utf-8
 
 {content}";
 
-            var responseBytes = Encoding.UTF8.GetBytes(response);
+                var responseBytes = Encoding.UTF8.GetBytes(response);
 
-            await networkStream.WriteAsync(responseBytes);
+                await networkStream.WriteAsync(responseBytes);
 
-            connection.Close();
+                connection.Close();
+            }
         }
     }
 }
