@@ -4,6 +4,8 @@
     {
         OK = 200,
         Redirect = 302,
-        NotFound = 404
+        BadRequest = 400,
+        NotFound = 404,
+        TooLarge = 413
     }
 }

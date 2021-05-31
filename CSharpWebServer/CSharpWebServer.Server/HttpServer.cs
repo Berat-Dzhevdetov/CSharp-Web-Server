@@ -1,11 +1,12 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace CSharpWebServer.Server
 {
+    using CSharpWebServer.Server.Http;
+    using System;
+    using System.Net;
+    using System.Net.Sockets;
+    using System.Text;
+    using System.Threading.Tasks;
     public class HttpServer
     {
         private IPAddress ipAddress;
@@ -22,7 +23,6 @@ namespace CSharpWebServer.Server
 
         public async Task Start()
         {
-
             listener.Start();
 
             Console.WriteLine($"Server started on port {port}...");
@@ -34,9 +34,11 @@ namespace CSharpWebServer.Server
 
                 var networkStream = connection.GetStream();
 
-                var request = await this.ReadRequest(networkStream);
-                Console.WriteLine(request);
+                var requestText = await this.ReadRequest(networkStream);
+                Console.WriteLine(requestText);
 
+                var request = HttpRequest.Parse(requestText);
+                
                 await this.WriteResponse(networkStream);
 
                 connection.Close();
@@ -49,6 +51,7 @@ namespace CSharpWebServer.Server
             var buffer = new byte[bufferLenght];
             var totalBytesRead = 0;
             var requestBuilder = new StringBuilder();
+
             while (networkStream.DataAvailable)
             {
                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLenght);
@@ -57,7 +60,8 @@ namespace CSharpWebServer.Server
 
                 if (totalBytesRead > 10 * 1024)
                 {
-                    //TODO: Implement HTTP status code 431
+                    //TODO: throw new TooLargeRequestException
+                    throw new NotImplementedException();
                 }
                 requestBuilder.AppendLine(Encoding.UTF8.GetString(buffer, 0, bytesRead));
             }
