@@ -64,12 +64,7 @@ namespace CSharpWebServer.Server.Http
                     throw new InvalidOperationException("Request is not valid.");
                 }
 
-                var header = new HttpHeader
-                {
-                    Name = headerParts[0],
-                    Value = headerParts[1].Trim()
-                };
-                headerCollectoin.Add(header);
+                headerCollectoin.Add(headerParts[0], headerParts[1].Trim());
             }
 
             return headerCollectoin;

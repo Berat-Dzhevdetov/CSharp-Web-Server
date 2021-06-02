@@ -9,4 +9,9 @@
     <ProjectReference Include="..\CSharpWebServer.Server\CSharpWebServer.Server.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Views\" />
+  </ItemGroup>
+
 </Project>
