@@ -47,14 +47,14 @@ namespace CSharpWebServer.Server
 
         private async Task<string> ReadRequest(NetworkStream networkStream)
         {
-            var bufferLenght = 1024;
-            var buffer = new byte[bufferLenght];
+            var bufferLength = 1024;
+            var buffer = new byte[bufferLength];
             var totalBytesRead = 0;
             var requestBuilder = new StringBuilder();
 
-            while (networkStream.DataAvailable)
+            do
             {
-                var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLenght);
+                var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLength);
 
                 totalBytesRead += bytesRead;
 
@@ -64,7 +64,7 @@ namespace CSharpWebServer.Server
                     throw new NotImplementedException();
                 }
                 requestBuilder.AppendLine(Encoding.UTF8.GetString(buffer, 0, bytesRead));
-            }
+            } while (networkStream.DataAvailable);
             return requestBuilder.ToString();
         }
         private async Task WriteResponse(NetworkStream networkStream)
