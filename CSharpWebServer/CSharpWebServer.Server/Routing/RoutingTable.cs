@@ -31,7 +31,7 @@ namespace CSharpWebServer.Server.Routing
         {
             Guard.AgainstNull(path, nameof(path));
             Guard.AgainstNull(responseFunc, nameof(responseFunc));
-            this.routes[method][path] = responseFunc;
+            this.routes[method][path.ToLower()] = responseFunc;
             return this;
         }
 
@@ -56,7 +56,7 @@ namespace CSharpWebServer.Server.Routing
         public HttpResponse ExecuteRequest(HttpRequest request)
         {
             var requestMethod = request.Method;
-            var requestUrl = request.Path;
+            var requestUrl = request.Path.ToLower();
             if (!this.routes.ContainsKey(requestMethod)
                 || !this.routes[requestMethod].ContainsKey(requestUrl))
             {

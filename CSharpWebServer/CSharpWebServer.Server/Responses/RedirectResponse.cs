@@ -3,8 +3,9 @@
     using CSharpWebServer.Server.Http;
     public class RedirectResponse : HttpResponse
     {
-        public RedirectResponse() : base(HttpStatusCode.Redirect)
+        public RedirectResponse(string location) : base(HttpStatusCode.Found)
         {
+            this.Headers.Add("Location", location);
         }
     }
 }

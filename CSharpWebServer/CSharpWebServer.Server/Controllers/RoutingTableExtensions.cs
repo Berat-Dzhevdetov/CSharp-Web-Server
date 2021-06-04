@@ -3,17 +3,17 @@
     using System;
     using CSharpWebServer.Server.Http;
     using CSharpWebServer.Server.Routing;
-    public static class RoutingTableExtentions
+    public static class RoutingTableExtensions
     {
         public static IRoutingTable MapGet<TController>(
-            this RoutingTable routingTable,
+            this IRoutingTable routingTable,
             string path,
             Func<TController, HttpResponse> controllerFunc)
             where TController : Controller
          => routingTable.MapGet(path, request => controllerFunc(CreateController<TController>(request)));
 
         public static IRoutingTable MapPost<TController>(
-            this RoutingTable routingTable,
+            this IRoutingTable routingTable,
             string path,
             Func<TController, HttpResponse> controllerFunc)
             where TController : Controller
