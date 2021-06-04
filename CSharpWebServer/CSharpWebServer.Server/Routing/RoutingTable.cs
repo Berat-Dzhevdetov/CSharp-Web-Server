@@ -1,14 +1,15 @@
 ﻿
 namespace CSharpWebServer.Server.Routing
 {
+    using System;
+    using System.Collections.Generic;
     using CSharpWebServer.Server.Common;
     using CSharpWebServer.Server.Http;
     using CSharpWebServer.Server.Responses;
-    using System.Collections.Generic;
 
     public class RoutingTable : IRoutingTable
     {
-        private readonly Dictionary<HttpMethod, Dictionary<string, HttpResponse>> routes;
+        private readonly Dictionary<HttpMethod, Dictionary<string, Func<HttpRequest,HttpResponse>>> routes;
 
         public RoutingTable()
         {
@@ -22,22 +23,37 @@ namespace CSharpWebServer.Server.Routing
         }
         public IRoutingTable Map(HttpMethod method, string path, HttpResponse response)
         {
-            Guard.AgainstNull(path, nameof(path));
             Guard.AgainstNull(response, nameof(response));
-            this.routes[method][path] = response;
+            this.Map(method, path, request => response);
+            return this;
+        }
+        public IRoutingTable Map(HttpMethod method, string path, Func<HttpRequest, HttpResponse> responseFunc)
+        {
+            Guard.AgainstNull(path, nameof(path));
+            Guard.AgainstNull(responseFunc, nameof(responseFunc));
+            this.routes[method][path] = responseFunc;
             return this;
         }
 
         public IRoutingTable MapGet(string path, HttpResponse response)
-        => Map(HttpMethod.Get, path, response);
+        => MapGet(path, request => response);
+
+        public IRoutingTable MapGet(string path, Func<HttpRequest, HttpResponse> responseFunc)
+        => Map(HttpMethod.Get, path, responseFunc);
+
         public IRoutingTable MapPost(string path, HttpResponse response)
-        => Map(HttpMethod.Post, path, response);
+        => MapPost(path, request => response);
+
+        public IRoutingTable MapPost(string path, Func<HttpRequest, HttpResponse> responseFunc)
+        => Map(HttpMethod.Post, path, responseFunc);
+
+
         public IRoutingTable MapPut(string path, HttpResponse response)
         => Map(HttpMethod.Put, path, response);
         public IRoutingTable MapDelete(string path, HttpResponse response)
         => Map(HttpMethod.Delete, path, response);
 
-        public HttpResponse MatchRequest(HttpRequest request)
+        public HttpResponse ExecuteRequest(HttpRequest request)
         {
             var requestMethod = request.Method;
             var requestUrl = request.Path;
@@ -46,7 +62,8 @@ namespace CSharpWebServer.Server.Routing
             {
                 return new NotFoundResponse();
             }
-            return this.routes[requestMethod][requestUrl];
+            var responseFunc = this.routes[requestMethod][requestUrl];
+            return responseFunc(request);
         }
     }
 }
