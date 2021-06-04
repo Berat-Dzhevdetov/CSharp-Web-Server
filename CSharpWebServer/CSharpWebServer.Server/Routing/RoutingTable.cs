@@ -4,7 +4,6 @@ namespace CSharpWebServer.Server.Routing
     using CSharpWebServer.Server.Common;
     using CSharpWebServer.Server.Http;
     using CSharpWebServer.Server.Responses;
-    using System;
     using System.Collections.Generic;
 
     public class RoutingTable : IRoutingTable
@@ -21,24 +20,27 @@ namespace CSharpWebServer.Server.Routing
                 [HttpMethod.Delete] = new()
             };
         }
-        public IRoutingTable Map(string url, HttpMethod method, HttpResponse response)
-        => method switch
+        public IRoutingTable Map(HttpMethod method, string path, HttpResponse response)
         {
-            HttpMethod.Get => this.MapGet(url,response),
-            _ => throw new InvalidOperationException($"Method '{method}' not supported")
-        };
-
-        public IRoutingTable MapGet(string url, HttpResponse response)
-        {
-            Guard.AgainstNull(url,nameof(url));
+            Guard.AgainstNull(path, nameof(path));
             Guard.AgainstNull(response, nameof(response));
-            this.routes[HttpMethod.Get][url] = response;
+            this.routes[method][path] = response;
             return this;
         }
+
+        public IRoutingTable MapGet(string path, HttpResponse response)
+        => Map(HttpMethod.Get, path, response);
+        public IRoutingTable MapPost(string path, HttpResponse response)
+        => Map(HttpMethod.Post, path, response);
+        public IRoutingTable MapPut(string path, HttpResponse response)
+        => Map(HttpMethod.Put, path, response);
+        public IRoutingTable MapDelete(string path, HttpResponse response)
+        => Map(HttpMethod.Delete, path, response);
+
         public HttpResponse MatchRequest(HttpRequest request)
         {
             var requestMethod = request.Method;
-            var requestUrl = request.Url;
+            var requestUrl = request.Path;
             if (!this.routes.ContainsKey(requestMethod)
                 || !this.routes[requestMethod].ContainsKey(requestUrl))
             {
