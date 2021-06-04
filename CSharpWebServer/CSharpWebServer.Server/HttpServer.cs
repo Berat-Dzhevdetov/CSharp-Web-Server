@@ -44,11 +44,11 @@
                 var connection = await listener.AcceptTcpClientAsync();
 
                 var networkStream = connection.GetStream();
-
                 var requestText = await this.ReadRequest(networkStream);
                 Console.WriteLine(requestText);
 
                 var request = HttpRequest.Parse(requestText);
+
 
                 var response = this.routingTable.ExecuteRequest(request);
 
@@ -75,7 +75,7 @@
                 if (totalBytesRead > 10 * 1024)
                 {
                     //TODO: throw new TooLargeRequestException
-                    throw new NotImplementedException();
+                    throw new TimeoutException();
                 }
                 requestBuilder.AppendLine(Encoding.UTF8.GetString(buffer, 0, bytesRead));
             } while (networkStream.DataAvailable);
