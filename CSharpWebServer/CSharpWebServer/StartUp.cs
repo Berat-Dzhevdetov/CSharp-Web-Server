@@ -8,7 +8,6 @@
         public static async Task Main()
         {
             // http://localhost:1234/
-            var port = 4000;
             var server = new HttpServer(
                     routes => routes
                     .MapGet("/", new TextResponse("Hello from the server!"))

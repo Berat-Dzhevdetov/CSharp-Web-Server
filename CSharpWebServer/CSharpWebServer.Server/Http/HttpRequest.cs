@@ -44,7 +44,7 @@ namespace CSharpWebServer.Server.Http
             }
             catch (Exception)
             {
-                throw new InvalidOperationException($"Method {method} is not supported");
+                throw new InvalidOperationException($"Method '{method}' is not supported");
             }
         }
 
