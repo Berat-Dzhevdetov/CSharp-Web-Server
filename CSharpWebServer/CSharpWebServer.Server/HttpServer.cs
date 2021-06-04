@@ -1,5 +1,4 @@
-﻿
-namespace CSharpWebServer.Server
+﻿namespace CSharpWebServer.Server
 {
     using CSharpWebServer.Server.Http;
     using CSharpWebServer.Server.Routing;
@@ -15,12 +14,12 @@ namespace CSharpWebServer.Server
         private readonly TcpListener listener;
         private readonly RoutingTable routingTable;
 
-        public HttpServer(string ipAddress,int port, Action<IRoutingTable> routingTableConfiguration)
+        public HttpServer(string ipAddress, int port, Action<IRoutingTable> routingTableConfiguration)
         {
             this.ipAddress = IPAddress.Parse(ipAddress);
             this.port = port;
 
-            this.listener = new TcpListener(this.ipAddress,this.port);
+            this.listener = new TcpListener(this.ipAddress, this.port);
             this.routingTable = new();
             routingTableConfiguration(routingTable);
         }
@@ -29,7 +28,7 @@ namespace CSharpWebServer.Server
         {
         }
 
-        public HttpServer(Action<IRoutingTable> routingTable) : this(4000,routingTable)
+        public HttpServer(Action<IRoutingTable> routingTable) : this(4000, routingTable)
         {
         }
 
@@ -53,7 +52,7 @@ namespace CSharpWebServer.Server
 
                 var response = this.routingTable.MatchRequest(request);
 
-                await this.WriteResponse(networkStream,response);
+                await this.WriteResponse(networkStream, response);
 
                 connection.Close();
             }
@@ -69,6 +68,7 @@ namespace CSharpWebServer.Server
             do
             {
                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLength);
+                if (bytesRead == 0) break;
 
                 totalBytesRead += bytesRead;
 
@@ -79,14 +79,13 @@ namespace CSharpWebServer.Server
                 }
                 requestBuilder.AppendLine(Encoding.UTF8.GetString(buffer, 0, bytesRead));
             } while (networkStream.DataAvailable);
-            return requestBuilder.ToString();
+            return requestBuilder.ToString().Trim();
         }
-        private async Task WriteResponse(NetworkStream networkStream,HttpResponse response)
+        private async Task WriteResponse(NetworkStream networkStream, HttpResponse response)
         {
             var responseBytes = Encoding.UTF8.GetBytes(response.ToString());
 
             await networkStream.WriteAsync(responseBytes);
         }
-        
     }
 }
