@@ -64,7 +64,8 @@ namespace CSharpWebServer.Server
             do
             {
                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLength);
-                if(bytesRead === 0) break;
+                if(bytesRead == 0) break;
+
                 totalBytesRead += bytesRead;
 
                 if (totalBytesRead > 10 * 1024)
@@ -74,7 +75,7 @@ namespace CSharpWebServer.Server
                 }
                 requestBuilder.AppendLine(Encoding.UTF8.GetString(buffer, 0, bytesRead));
             } while (networkStream.DataAvailable);
-            return requestBuilder.ToString();
+            return requestBuilder.ToString().Trim();
         }
         private async Task WriteResponse(NetworkStream networkStream)
         {
