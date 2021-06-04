@@ -55,7 +55,7 @@ namespace CSharpWebServer.Server.Http
         {
             var urlParts = url.Split("?",2);
             var path = urlParts[0];
-            var query = url.Length > 1 ? ParseQuery(urlParts[1]) : new();
+            var query = urlParts.Length > 1 ? ParseQuery(urlParts[1]) : new();
             return (path, query);
         }
         private static Dictionary<string,string> ParseQuery(string queryString)
