@@ -64,7 +64,7 @@ namespace CSharpWebServer.Server
             do
             {
                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLength);
-
+                if(bytesRead === 0) break;
                 totalBytesRead += bytesRead;
 
                 if (totalBytesRead > 10 * 1024)
