@@ -26,7 +26,7 @@
             var catName = query.ContainsKey(nameKey) ? query[nameKey] : "the dogs";
             var result = $"<h1>Hello from {catName}</h1>";
 
-            return Html(result);
+            return View();
         }
     }
 }
