@@ -13,6 +13,7 @@
                     routes => routes
                     .MapGet<HomeController>("/", controller => controller.Index())
                     .MapGet<AnimalsController>("/cats", controller => controller.Cats())
+                    .MapPost<AnimalsController>("/cats/save", controller => controller.Save())
                     .MapGet<AnimalsController>("/dogs", controller => controller.Dogs()));
             await server.Start();
         }

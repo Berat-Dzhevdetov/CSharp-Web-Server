@@ -9,8 +9,10 @@ namespace CSharpWebServer.Server.Http
         private const string NewLine = "\r\n";
         public  HttpMethod Method { get; private set; }
         public  string Path { get; private set; }
-        public Dictionary<string,string> Query { get; private set; }
-        public  HttpHeaderCollection Headers { get; private set; }
+        public IReadOnlyDictionary<string,string> Query { get; private set; }
+
+        public IReadOnlyDictionary<string,string> Form { get; private set; }
+        public IReadOnlyDictionary<string,HttpHeader> Headers { get; private set; }
 
         public  string Body { get; set; }
 
@@ -25,18 +27,21 @@ namespace CSharpWebServer.Server.Http
             var (path,query) = ParseUrl(url);
 
             var headerLines = lines.Skip(1);
-            var header = ParseHttpHeaders(headerLines);
+            var headers = ParseHttpHeaders(headerLines);
 
-            var bodyLines = lines.Skip(header.Count + 2).ToArray();
+            var bodyLines = lines.Skip(headers.Count + 2).ToArray();
             var body = string.Join(NewLine,bodyLines);
+
+            var form = ParseForm(headers, body);
 
             return new HttpRequest
             {
                 Method = method,
                 Path = path,
                 Query = query,
-                Headers = header,
-                Body = body
+                Headers = headers,
+                Body = body,
+                Form = form
             };
         }
 
@@ -65,9 +70,9 @@ namespace CSharpWebServer.Server.Http
             .Where(part => part.Length == 2)
             .ToDictionary(part => part[0], part => part[1]);
 
-        private static HttpHeaderCollection ParseHttpHeaders(IEnumerable<string> headerLines)
+        private static Dictionary<string, HttpHeader> ParseHttpHeaders(IEnumerable<string> headerLines)
         {
-            var headerCollectoin = new HttpHeaderCollection();
+            var headerCollectoin = new Dictionary<string, HttpHeader>();
 
             foreach (var headerLine in headerLines)
             {
@@ -81,10 +86,21 @@ namespace CSharpWebServer.Server.Http
                     throw new InvalidOperationException("Request is not valid.");
                 }
 
-                headerCollectoin.Add(headerParts[0], headerParts[1].Trim());
+                headerCollectoin.Add(headerParts[0], new HttpHeader(headerParts[0],headerParts[1].Trim()));
             }
 
             return headerCollectoin;
+        }
+
+        private static Dictionary<string,string> ParseForm(Dictionary<string, HttpHeader> headers,string body)
+        {
+            var result = new Dictionary<string, string>();
+            if (headers.ContainsKey(HttpHeader.ContentType)
+                && headers[HttpHeader.ContentType].Value == HttpContentType.FormUrlEncoded)
+            {
+                result = ParseQuery(body);
+            }
+            return result;
         }
     }
 }
