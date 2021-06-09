@@ -1,9 +1,10 @@
 ﻿namespace CSharpWebServer.Server.Responses
 {
+    using CSharpWebServer.Server.Http;
     public class TextResponse : ContentResponse
     {
         public TextResponse(string text)
-            : base(text,"text/plain; charset=utf-8")
+            : base(text, HttpContentType.PlainText)
         {
         }
     }

@@ -1,5 +1,6 @@
 ﻿namespace CSharpWebServer.Server.Http
 {
+    using CSharpWebServer.Server.Common;
     using System;
     using System.Text;
     public abstract class HttpResponse
@@ -13,11 +14,11 @@
 
         }
 
-        public HttpStatusCode StatusCode { get; init; }
+        public HttpStatusCode StatusCode { get; protected set; }
 
         public HttpHeaderCollection Headers { get; } = new();
 
-        public string Content { get; set; }
+        public string Content { get; protected set; }
 
         public override string ToString()
         {
@@ -35,6 +36,19 @@
             }
 
             return result.ToString();
+        }
+
+        protected void PrepareContent(string content,string contentType)
+        {
+            Guard.AgainstNull(content, nameof(content));
+            Guard.AgainstNull(contentType, nameof(contentType));
+
+            var contentLength = Encoding.UTF8.GetByteCount(content).ToString();
+
+            this.Headers.Add("Content-Type", contentType);
+            this.Headers.Add("Content-Length", contentLength);
+
+            this.Content = content;
         }
     }
 }

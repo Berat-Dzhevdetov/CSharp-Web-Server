@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
+    <Folder Include="Errors\" />
     <Folder Include="Views\animals\" />
   </ItemGroup>
 
