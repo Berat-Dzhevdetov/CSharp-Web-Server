@@ -8,11 +8,11 @@
     {
         private const char PathSeparator = '/';
 
-        public ViewResponse(string viewPath, string controllerName) : base(HttpStatusCode.OK)
-        => this.GetHtml(viewPath, controllerName);
+        public ViewResponse(string viewPath, string controllerName,object model) : base(HttpStatusCode.OK)
+        => this.GetHtml(viewPath, controllerName, model);
 
 
-        private void GetHtml(string viewName,string controllerName)
+        private void GetHtml(string viewName,string controllerName,object model)
         {
             if(viewName.Contains(PathSeparator))
             {
@@ -30,6 +30,11 @@
 
             var viewContent = File.ReadAllText(viewPath);
 
+            if(model != null)
+            {
+                viewContent = PopulateModel(viewContent, model);
+            }
+
             this.PrepareContent(viewContent, HttpContentType.Html);
         }
 
@@ -39,6 +44,23 @@
             this.StatusCode = HttpStatusCode.NotFound;
             var errorMessage = $"View {controllerName}/{viewName} was not found!";
             this.PrepareContent(errorMessage, HttpContentType.Html);
+        }
+
+        private string PopulateModel(string viewContent,object model)
+        {
+            var data = model.GetType().GetProperties().Select(pr => new
+            {
+                Name = pr.Name,
+                Value = pr.GetValue(model)
+            });
+            var openingBrackets = "{{";
+            var closingBrackets = "}}";
+            foreach (var entry in data)
+            {
+                
+                viewContent = viewContent.Replace($"{openingBrackets}{entry.Name}{closingBrackets}",entry.Value.ToString());
+            }
+            return viewContent;
         }
     }
 }

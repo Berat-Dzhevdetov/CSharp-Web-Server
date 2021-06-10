@@ -12,16 +12,18 @@
 
         public HttpResponse Cats()
         {
-            return View();
+            return null;
         }
         public HttpResponse Dogs()
         {
             const string nameKey = "Name";
+            const string Age = "Age";
             var query = Request.Query;
-            var catName = query.ContainsKey(nameKey) ? query[nameKey] : "the dogs";
-            var result = $"<h1>Hello from {catName}</h1>";
+            var dogName = query.ContainsKey(nameKey) ? query[nameKey] : "the dogs";
+            var dogAge = query.ContainsKey(Age) ? query[Age] : "the dogs";
 
-            return View("Animals/Dogs");
+
+            return View(new { Name = dogName,Age = dogAge });
         }
         public HttpResponse Save()
         {

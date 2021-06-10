@@ -21,7 +21,11 @@
             => new RedirectResponse(location);
 
         protected HttpResponse View([CallerMemberName] string viewName = "")
-           => new ViewResponse(viewName, GetNameOfController());
+           => new ViewResponse(viewName, GetNameOfController(),null);
+        protected HttpResponse View(object model = null, [CallerMemberName] string viewName = "")
+           => new ViewResponse(viewName, GetNameOfController(), model);
+        protected HttpResponse View(string viewName, object model = null)
+           => new ViewResponse(viewName, GetNameOfController(),model);
 
         private string GetNameOfController()
             => this.GetType().Name.Replace(nameof(Controller), string.Empty);
