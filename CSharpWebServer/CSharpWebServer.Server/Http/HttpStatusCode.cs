@@ -7,6 +7,7 @@
         BadRequest = 400,
         Unauthorized = 401,
         NotFound = 404,
-        TooLarge = 413
+        TooLarge = 413,
+        InternalServerError = 500
     }
 }

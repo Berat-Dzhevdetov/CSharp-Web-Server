@@ -21,6 +21,12 @@
 
         public string Content { get; protected set; }
 
+        public static HttpResponse ForError(string msg)
+            => new HttpResponse(HttpStatusCode.InternalServerError)
+            {
+                Content = msg,
+            };
+
         public void AddHeader(string name, string value)
         {
             Guard.AgainstNull(name, nameof(name));

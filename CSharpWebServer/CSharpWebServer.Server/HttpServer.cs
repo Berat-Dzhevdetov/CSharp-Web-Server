@@ -45,14 +45,23 @@
 
                 var networkStream = connection.GetStream();
                 var requestText = await this.ReadRequest(networkStream);
-                Console.WriteLine(requestText);
 
-                var request = HttpRequest.Parse(requestText);
+                try
+                {
+                    var request = HttpRequest.Parse(requestText);
 
+                    var response = this.routingTable.ExecuteRequest(request);
 
-                var response = this.routingTable.ExecuteRequest(request);
+                    this.PrepareSession(response, request);
 
-                await this.WriteResponse(networkStream, response);
+                    this.LogPipeLine(request,response);
+
+                    await this.WriteResponse(networkStream, response);
+                }
+                catch (Exception ex)
+                {
+                    await HandleError(ex, networkStream);
+                }
 
                 connection.Close();
             }
@@ -81,11 +90,39 @@
             } while (networkStream.DataAvailable);
             return requestBuilder.ToString().Trim();
         }
+
+        private async Task HandleError(Exception ex,NetworkStream networkStream)
+        {
+            var errorMsg = $"{ex.Message} {Environment.NewLine} {ex.StackTrace}";
+            var errorResponse = HttpResponse.ForError(errorMsg);
+            await this.WriteResponse(networkStream, errorResponse);
+        }
+
+        private void LogPipeLine(HttpRequest request, HttpResponse response)
+        {
+            var separator = new string('-',50);
+
+            var log = new StringBuilder();
+
+            log.AppendLine();
+            log.AppendLine(separator);
+            log.AppendLine("Request:");
+            log.AppendLine(request.ToString());
+            log.AppendLine();
+            log.AppendLine("Response:");
+            log.AppendLine(response.ToString());
+
+            Console.WriteLine(log.ToString());
+        }
+
         private async Task WriteResponse(NetworkStream networkStream, HttpResponse response)
         {
             var responseBytes = Encoding.UTF8.GetBytes(response.ToString());
 
             await networkStream.WriteAsync(responseBytes);
         }
+
+        private void PrepareSession(HttpResponse response, HttpRequest request)
+            => response.AddCookie(HttpSession.SessionCookieName, request.Session.Id);
     }
 }
