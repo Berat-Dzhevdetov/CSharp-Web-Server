@@ -12,7 +12,9 @@
             var server = new HttpServer(
                     routes => routes
                     .MapGet<HomeController>("/", controller => controller.Index())
+                    .MapGet<HomeController>("/cookie", controller => controller.Cookie())
                     .MapGet<AnimalsController>("/cats", controller => controller.Cats())
+                    .MapGet<AnimalsController>("/secretCats", controller => controller.SetCookieToSeeCats())
                     .MapPost<AnimalsController>("/cats/save", controller => controller.Save())
                     .MapGet<AnimalsController>("/dogs", controller => controller.Dogs()));
             await server.Start();

@@ -5,7 +5,6 @@ namespace CSharpWebServer.Server.Routing
     using System.Collections.Generic;
     using CSharpWebServer.Server.Common;
     using CSharpWebServer.Server.Http;
-    using CSharpWebServer.Server.Responses;
 
     public class RoutingTable : IRoutingTable
     {
@@ -60,7 +59,7 @@ namespace CSharpWebServer.Server.Routing
             if (!this.routes.ContainsKey(requestMethod)
                 || !this.routes[requestMethod].ContainsKey(requestUrl))
             {
-                return new NotFoundResponse();
+                return new HttpResponse(HttpStatusCode.NotFound);
             }
             var responseFunc = this.routes[requestMethod][requestUrl];
             return responseFunc(request);

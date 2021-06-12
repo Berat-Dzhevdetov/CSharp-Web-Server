@@ -1,14 +1,14 @@
-﻿namespace CSharpWebServer.Server.Responses
+﻿namespace CSharpWebServer.Server.Results
 {
     using System.IO;
     using System.Linq;
     using CSharpWebServer.Server.Http;
 
-    public class ViewResponse : HttpResponse
+    public class ViewResults : ActionResult
     {
         private const char PathSeparator = '/';
 
-        public ViewResponse(string viewPath, string controllerName,object model) : base(HttpStatusCode.OK)
+        public ViewResults(HttpResponse response,string viewPath, string controllerName,object model) : base(response)
         => this.GetHtml(viewPath, controllerName, model);
 
 

@@ -8,6 +8,9 @@
         public const string Server = "Server";
         public const string Date = "Date";
         public const string Location = "Location";
+        public const string BadRequest = "Bad Request";
+        public const string SetCookie = "Set-Cookie";
+        public const string Cookie = "Cookie";
 
         public HttpHeader(string name, string value)
         {
@@ -21,8 +24,6 @@
         public string Value { get; init; }
 
         public override string ToString()
-        {
-            return $"{this.Name}: {this.Value}";
-        }
+            => $"{this.Name}: {this.Value}";
     }
 }

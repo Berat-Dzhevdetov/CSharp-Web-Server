@@ -2,6 +2,8 @@
 {
     using CSharpWebServer.Server.Controllers;
     using CSharpWebServer.Server.Http;
+    using CSharpWebServer.Server.Results;
+
     public class AnimalsController : Controller
     {
         public AnimalsController(HttpRequest request)
@@ -10,22 +12,37 @@
 
         }
 
-        public HttpResponse Cats()
+        public ActionResult Cats()
         {
-            return null;
+            const string cookieName = "uid";
+
+            if (!this.Request.Cookies.ContainsKey(cookieName))
+            {
+                return new UnauthorizedResult(this.Response);
+            }
+
+            return View();
         }
-        public HttpResponse Dogs()
+
+        public ActionResult SetCookieToSeeCats()
+        {
+            this.Response.AddCookie("uid", "15");
+            this.Response.AddCookie("lang", "en");
+            return Redirect("/cats");
+        }
+
+        public ActionResult Dogs()
         {
             const string nameKey = "Name";
             const string Age = "Age";
             var query = Request.Query;
-            var dogName = query.ContainsKey(nameKey) ? query[nameKey] : "the dogs";
-            var dogAge = query.ContainsKey(Age) ? query[Age] : "the dogs";
+            var dogName = query.ContainsKey(nameKey) ? query[nameKey] : "";
+            var dogAge = query.ContainsKey(Age) ? query[Age] : "";
 
 
             return View(new { Name = dogName,Age = dogAge });
         }
-        public HttpResponse Save()
+        public ActionResult Save()
         {
             var name = this.Request.Form["Name"];
             var age = this.Request.Form["Age"];

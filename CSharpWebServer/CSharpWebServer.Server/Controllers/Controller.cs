@@ -2,30 +2,34 @@
 {
     using System.Runtime.CompilerServices;
     using CSharpWebServer.Server.Http;
-    using CSharpWebServer.Server.Responses;
+    using CSharpWebServer.Server.Results;
 
     public abstract class Controller
     {
         protected HttpRequest Request { get; private init; }
+        protected HttpResponse Response { get; private init; }
 
         protected Controller(HttpRequest request)
-        => this.Request = request;
+        {
+            this.Request = request;
+            this.Response = new HttpResponse(HttpStatusCode.OK);
+        }
 
-        protected HttpResponse Text(string text)
-            => new TextResponse(text);
+        protected ActionResult Text(string text)
+            => new TextResults(this.Response, text);
 
-        protected HttpResponse Html(string text)
-            => new HtmlResponse(text);
+        protected ActionResult Html(string text)
+            => new HtmlResults(this.Response, text);
 
-        protected HttpResponse Redirect(string location)
-            => new RedirectResponse(location);
+        protected ActionResult Redirect(string location)
+            => new RedirectResults(this.Response, location);
 
-        protected HttpResponse View([CallerMemberName] string viewName = "")
-           => new ViewResponse(viewName, GetNameOfController(),null);
-        protected HttpResponse View(object model = null, [CallerMemberName] string viewName = "")
-           => new ViewResponse(viewName, GetNameOfController(), model);
-        protected HttpResponse View(string viewName, object model = null)
-           => new ViewResponse(viewName, GetNameOfController(),model);
+        protected ActionResult View([CallerMemberName] string viewName = "")
+           => new ViewResults(this.Response,viewName, GetNameOfController(),null);
+        protected ActionResult View(object model, [CallerMemberName] string viewName = "")
+           => new ViewResults(this.Response, viewName, GetNameOfController(), model);
+        protected ActionResult View(string viewName, object model)
+           => new ViewResults(this.Response, viewName, GetNameOfController(),model);
 
         private string GetNameOfController()
             => this.GetType().Name.Replace(nameof(Controller), string.Empty);
