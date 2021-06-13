@@ -22,5 +22,10 @@
             this.Response.AddCookie("lastPage", "2");
             return Html("<h1>Your cookie has been set</h1>");
         }
+
+        public HttpResponse StaticFiles()
+        {
+            return View();
+        }
     }
 }

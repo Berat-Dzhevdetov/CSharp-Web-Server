@@ -2,9 +2,10 @@
 {
     using System;
     using CSharpWebServer.Server.Http;
-
+    using CSharpWebServer.Server.Settings;
     public interface IRoutingTable
     {
+        IRoutingTable MapStaticFiles(string folder= Settings.StaticFilesRootFolder);
         IRoutingTable Map(HttpMethod method, string path, HttpResponse response);
         IRoutingTable Map(HttpMethod method, string path, Func<HttpRequest, HttpResponse> responseFunc);
         IRoutingTable MapGet(string path, HttpResponse response);

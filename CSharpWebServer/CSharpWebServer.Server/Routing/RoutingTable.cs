@@ -3,8 +3,10 @@ namespace CSharpWebServer.Server.Routing
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using CSharpWebServer.Server.Common;
     using CSharpWebServer.Server.Http;
+    using CSharpWebServer.Server.Settings;
 
     public class RoutingTable : IRoutingTable
     {
@@ -63,6 +65,35 @@ namespace CSharpWebServer.Server.Routing
             }
             var responseFunc = this.routes[requestMethod][requestUrl];
             return responseFunc(request);
+        }
+
+        public IRoutingTable MapStaticFiles(string folder = Settings.StaticFilesRootFolder)
+        {
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var staticFilesFolder = Path.Combine(currentDirectory, folder);
+            var staticFiles = Directory.GetFiles(
+                staticFilesFolder,
+                "*.*",
+                SearchOption.AllDirectories);
+
+            foreach (var file in staticFiles)
+            {
+                var relativePath = Path.GetRelativePath(staticFilesFolder, file);
+
+                var urlPath = "/" + relativePath.Replace("\\", "/");
+
+                this.MapGet(urlPath, request =>
+                {
+                    var content = File.ReadAllBytes(file);
+                    var fileExtension = Path.GetExtension(file);
+                    var contentType = HttpContentType.GetByFileExtention(fileExtension);
+
+                    return new HttpResponse(HttpStatusCode.OK)
+                        .SetContent(content, contentType);
+                });
+            }
+
+            return this;
         }
     }
 }

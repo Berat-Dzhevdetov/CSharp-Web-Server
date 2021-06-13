@@ -35,7 +35,7 @@
                 viewContent = PopulateModel(viewContent, model);
             }
 
-            this.PrepareContent(viewContent, HttpContentType.Html);
+            this.SetContent(viewContent, HttpContentType.Html);
         }
 
 
@@ -43,7 +43,7 @@
         {
             this.StatusCode = HttpStatusCode.NotFound;
             var errorMessage = $"View {controllerName}/{viewName} was not found!";
-            this.PrepareContent(errorMessage, HttpContentType.Html);
+            this.SetContent(errorMessage, HttpContentType.Html);
         }
 
         private string PopulateModel(string viewContent,object model)
