@@ -2,17 +2,35 @@
 {
     using System.Runtime.CompilerServices;
     using CSharpWebServer.Server.Http;
+    using CSharpWebServer.Server.Identity;
     using CSharpWebServer.Server.Results;
 
     public abstract class Controller
     {
+        private const string UserSessionKey = "AuthenticatedUsedId";
         protected HttpRequest Request { get; private init; }
-        protected HttpResponse Response { get; private init; }
+        protected HttpResponse Response { get; private init; } = new(HttpStatusCode.OK);
+        protected UserIdentity User { get; private set; }
+
+        protected void SignIn(string uid)
+        {
+            this.Request.Session[UserSessionKey] = uid;
+            this.User = new UserIdentity()
+            {
+                Id = uid
+            };
+        }
+
+        protected void SignOut(string uid)
+        {
+            this.Request.Session.Remove(uid);
+            this.User = new();
+        }
 
         protected Controller(HttpRequest request)
         {
             this.Request = request;
-            this.Response = new HttpResponse(HttpStatusCode.OK);
+            this.User = this.Request.Session.ContainsKey(UserSessionKey) ? new UserIdentity() { Id = this.Request.Session[UserSessionKey] } : new(); 
         }
 
         protected ActionResult Text(string text)

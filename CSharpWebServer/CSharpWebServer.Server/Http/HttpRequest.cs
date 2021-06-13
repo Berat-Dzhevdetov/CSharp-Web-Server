@@ -62,7 +62,15 @@ namespace CSharpWebServer.Server.Http
 
         private static HttpMethod ParseMethod(string method)
         {
-            return (HttpMethod)Enum.Parse(typeof(HttpMethod), method, true);
+            try
+            {
+                return (HttpMethod)Enum.Parse(typeof(HttpMethod), method, true);
+            }
+            catch (Exception)
+            {
+                throw new InvalidOperationException($"Method '{method}' is not supported");
+                //return HttpMethod.Get;
+            }
         }
         private static (string, Dictionary<string, string>) ParseUrl(string url)
         {

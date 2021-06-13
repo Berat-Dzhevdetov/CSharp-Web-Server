@@ -38,33 +38,35 @@
 
             Console.WriteLine($"Server started on port {port}...");
             Console.WriteLine("Awaiting for requests...");
-
-            while (true)
+            _ = Task.Run(async () =>
             {
-                var connection = await listener.AcceptTcpClientAsync();
-
-                var networkStream = connection.GetStream();
-                var requestText = await this.ReadRequest(networkStream);
-
-                try
+                while (true)
                 {
-                    var request = HttpRequest.Parse(requestText);
+                    var connection = await listener.AcceptTcpClientAsync();
 
-                    var response = this.routingTable.ExecuteRequest(request);
+                    var networkStream = connection.GetStream();
+                    var requestText = await this.ReadRequest(networkStream);
 
-                    this.PrepareSession(response, request);
+                    try
+                    {
+                        var request = HttpRequest.Parse(requestText);
 
-                    this.LogPipeLine(request,response);
+                        var response = this.routingTable.ExecuteRequest(request);
 
-                    await this.WriteResponse(networkStream, response);
+                        this.PrepareSession(response, request);
+
+                        this.LogPipeLine(request, response);
+
+                        await this.WriteResponse(networkStream, response);
+                    }
+                    catch (Exception ex)
+                    {
+                        await HandleError(ex, networkStream);
+                    }
+
+                    connection.Close();
                 }
-                catch (Exception ex)
-                {
-                    await HandleError(ex, networkStream);
-                }
-
-                connection.Close();
-            }
+            });
         }
 
         private async Task<string> ReadRequest(NetworkStream networkStream)
@@ -123,6 +125,12 @@
         }
 
         private void PrepareSession(HttpResponse response, HttpRequest request)
-            => response.AddCookie(HttpSession.SessionCookieName, request.Session.Id);
+        {
+            if (request.Session.IsNew)
+            {
+                response.AddCookie(HttpSession.SessionCookieName, request.Session.Id);
+                request.Session.IsNew = false;
+            }
+        }
     }
 }
