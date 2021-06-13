@@ -4,7 +4,6 @@ namespace CSharpWebServer.Server.Http
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
 
     public class HttpRequest
     {
@@ -140,7 +139,10 @@ namespace CSharpWebServer.Server.Http
 
             if (!Sessions.ContainsKey(sessionId))
             {
-                Sessions[sessionId] = new HttpSession(sessionId);
+                Sessions[sessionId] = new HttpSession(sessionId)
+                {
+                    IsNew = true
+                };
             }
             return Sessions[sessionId];
         }
