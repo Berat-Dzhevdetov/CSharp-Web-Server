@@ -4,6 +4,7 @@ namespace CSharpWebServer.Server.Http
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Web;
 
     public class HttpRequest
     {
@@ -77,7 +78,7 @@ namespace CSharpWebServer.Server.Http
             return (path, query);
         }
         private static Dictionary<string, string> ParseQuery(string queryString)
-            => queryString
+            => HttpUtility.UrlDecode(queryString)
             .Split("&")
             .Select(part => part.Split("="))
             .Where(part => part.Length == 2)
