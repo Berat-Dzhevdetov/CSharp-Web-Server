@@ -20,7 +20,6 @@
             }
 
             var directory = Directory.GetCurrentDirectory();
-            //var (controllerName,actionName) = SplitAbsolutePath(filePath);
             var viewPath = Path.GetFullPath(Path.Combine(directory, @"..\..\..\","Views", controllerName, viewName.TrimStart(PathSeparator) + ".cshtml"));
             if (!File.Exists(viewPath))
             {
@@ -33,6 +32,15 @@
             if(model != null)
             {
                 viewContent = PopulateModel(viewContent, model);
+            }
+
+            var layoutPath = Path.GetFullPath(Path.Combine(directory, @"..\..\..\", "Views", "Layout.cshtml"));
+
+            if(File.Exists(layoutPath))
+            {
+                var layoutContent = File.ReadAllText(layoutPath);
+
+                viewContent = layoutContent.Replace("@RenderBody()", viewContent);
             }
 
             this.SetContent(viewContent, HttpContentType.Html);
@@ -53,12 +61,9 @@
                 Name = pr.Name,
                 Value = pr.GetValue(model)
             });
-            var openingBrackets = "{{";
-            var closingBrackets = "}}";
             foreach (var entry in data)
             {
-                
-                viewContent = viewContent.Replace($"{openingBrackets}{entry.Name}{closingBrackets}",entry.Value.ToString());
+                viewContent = viewContent.Replace($"@Model.{entry.Name}",entry.Value.ToString());
             }
             return viewContent;
         }
