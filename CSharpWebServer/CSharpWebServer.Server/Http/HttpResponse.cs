@@ -22,7 +22,7 @@
         public string Content { get; protected set; }
 
         public static HttpResponse ForError(string msg)
-            => new HttpResponse(HttpStatusCode.InternalServerError)
+            => new(HttpStatusCode.InternalServerError)
             {
                 Content = msg,
             };

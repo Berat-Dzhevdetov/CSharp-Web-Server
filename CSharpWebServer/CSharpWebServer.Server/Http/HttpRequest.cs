@@ -4,9 +4,11 @@ namespace CSharpWebServer.Server.Http
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
+
     public class HttpRequest
     {
-        private static Dictionary<string, HttpSession> Sessions = new();
+        private static readonly Dictionary<string, HttpSession> Sessions = new();
 
         private const string NewLine = "\r\n";
         public HttpMethod Method { get; private set; }
@@ -50,14 +52,10 @@ namespace CSharpWebServer.Server.Http
                 Query = query,
                 Headers = headers,
                 Cookies = cookies,
+                Session = session,
                 Body = body,
                 Form = form
             };
-        }
-
-        public override string ToString()
-        {
-            throw new NotImplementedException();
         }
 
         private static HttpMethod ParseMethod(string method)

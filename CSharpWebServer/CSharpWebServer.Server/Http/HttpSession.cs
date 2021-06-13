@@ -6,7 +6,7 @@
     {
         public const string SessionCookieName = "MyWebServerSID";
 
-        private Dictionary<string, string> data;
+        private readonly Dictionary<string, string> data;
 
         public HttpSession(string id)
         {

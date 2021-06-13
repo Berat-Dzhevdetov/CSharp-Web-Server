@@ -9,8 +9,8 @@
     using System.Threading.Tasks;
     public class HttpServer
     {
-        private IPAddress ipAddress;
-        private int port;
+        private readonly IPAddress ipAddress;
+        private readonly int port;
         private readonly TcpListener listener;
         private readonly RoutingTable routingTable;
 
@@ -38,12 +38,12 @@
 
             Console.WriteLine($"Server started on port {port}...");
             Console.WriteLine("Awaiting for requests...");
-            _ = Task.Run(async () =>
-            {
-                while (true)
-                {
-                    var connection = await listener.AcceptTcpClientAsync();
 
+            while (true)
+            {
+                var connection = await listener.AcceptTcpClientAsync();
+                _ = Task.Run(async () =>
+                {
                     var networkStream = connection.GetStream();
                     var requestText = await this.ReadRequest(networkStream);
 
@@ -55,7 +55,7 @@
 
                         this.PrepareSession(response, request);
 
-                        this.LogPipeLine(request, response);
+                        this.LogPipeLine(request, response.ToString());
 
                         await this.WriteResponse(networkStream, response);
                     }
@@ -65,8 +65,8 @@
                     }
 
                     connection.Close();
-                }
-            });
+                });
+            }
         }
 
         private async Task<string> ReadRequest(NetworkStream networkStream)
@@ -93,16 +93,16 @@
             return requestBuilder.ToString().Trim();
         }
 
-        private async Task HandleError(Exception ex,NetworkStream networkStream)
+        private async Task HandleError(Exception ex, NetworkStream networkStream)
         {
             var errorMsg = $"{ex.Message} {Environment.NewLine} {ex.StackTrace}";
             var errorResponse = HttpResponse.ForError(errorMsg);
             await this.WriteResponse(networkStream, errorResponse);
         }
 
-        private void LogPipeLine(HttpRequest request, HttpResponse response)
+        private void LogPipeLine(HttpRequest request, string response)
         {
-            var separator = new string('-',50);
+            var separator = new string('-', 50);
 
             var log = new StringBuilder();
 
@@ -112,7 +112,7 @@
             log.AppendLine(request.ToString());
             log.AppendLine();
             log.AppendLine("Response:");
-            log.AppendLine(response.ToString());
+            log.AppendLine(response);
 
             Console.WriteLine(log.ToString());
         }
