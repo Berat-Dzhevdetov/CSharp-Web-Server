@@ -4,6 +4,7 @@
     using CSharpWebServer.Server.Http;
     using CSharpWebServer.Server.Identity;
     using CSharpWebServer.Server.Results;
+    using CSharpWebServer.Server.Controllers;
 
     public abstract class Controller
     {
@@ -43,13 +44,11 @@
             => new RedirectResults(this.Response, location);
 
         protected ActionResult View([CallerMemberName] string viewName = "")
-           => new ViewResults(this.Response,viewName, GetNameOfController(),null);
+           => new ViewResults(this.Response,viewName, this.GetType().GetControllerName(),null);
         protected ActionResult View(object model, [CallerMemberName] string viewName = "")
-           => new ViewResults(this.Response, viewName, GetNameOfController(), model);
+           => new ViewResults(this.Response, viewName, this.GetType().GetControllerName(), model);
         protected ActionResult View(string viewName, object model)
-           => new ViewResults(this.Response, viewName, GetNameOfController(),model);
+           => new ViewResults(this.Response, viewName, this.GetType().GetControllerName(),model);
 
-        private string GetNameOfController()
-            => this.GetType().Name.Replace(nameof(Controller), string.Empty);
     }
 }

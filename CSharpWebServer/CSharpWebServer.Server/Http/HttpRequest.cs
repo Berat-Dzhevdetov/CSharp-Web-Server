@@ -99,7 +99,10 @@ namespace CSharpWebServer.Server.Http
                     throw new InvalidOperationException("Request is not valid.");
                 }
 
-                headerCollectoin.Add(headerParts[0], new HttpHeader(headerParts[0], headerParts[1].Trim()));
+                var headerName = headerParts[0];
+                var headerValue = headerParts[1];
+                var header = new HttpHeader(headerName, headerValue);
+                headerCollectoin[headerName] = header;
             }
 
             return headerCollectoin;

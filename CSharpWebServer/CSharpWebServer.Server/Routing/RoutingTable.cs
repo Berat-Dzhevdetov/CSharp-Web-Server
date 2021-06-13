@@ -85,7 +85,7 @@ namespace CSharpWebServer.Server.Routing
                 this.MapGet(urlPath, request =>
                 {
                     var content = File.ReadAllBytes(file);
-                    var fileExtension = Path.GetExtension(file);
+                    var fileExtension = Path.GetExtension(file).Trim('.');
                     var contentType = HttpContentType.GetByFileExtention(fileExtension);
 
                     return new HttpResponse(HttpStatusCode.OK)
