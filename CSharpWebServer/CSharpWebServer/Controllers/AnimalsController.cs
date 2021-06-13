@@ -6,12 +6,6 @@
 
     public class AnimalsController : Controller
     {
-        public AnimalsController(HttpRequest request)
-            : base(request)
-        {
-
-        }
-
         public ActionResult Cats()
         {
             const string cookieName = "uid";

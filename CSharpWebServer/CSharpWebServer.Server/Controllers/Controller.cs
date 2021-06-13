@@ -4,19 +4,31 @@
     using CSharpWebServer.Server.Http;
     using CSharpWebServer.Server.Identity;
     using CSharpWebServer.Server.Results;
-    using CSharpWebServer.Server.Controllers;
 
     public abstract class Controller
     {
-        private const string UserSessionKey = "AuthenticatedUsedId";
-        protected HttpRequest Request { get; private init; }
+        public const string UserSessionKey = "AuthenticatedUsedId";
+        private UserIdentity userIdentity;
+        protected HttpRequest Request { get; init; }
         protected HttpResponse Response { get; private init; } = new(HttpStatusCode.OK);
-        protected UserIdentity User { get; private set; }
+        protected UserIdentity User 
+        {
+            get
+            {
+                if(this.userIdentity == null)
+                {
+                    this.userIdentity = this.Request.Session.ContainsKey(UserSessionKey)
+                        ? new UserIdentity { Id = this.Request.Session[UserSessionKey] }
+                        : new();
+                }
+                return userIdentity;
+            }
+        }
 
         protected void SignIn(string uid)
         {
             this.Request.Session[UserSessionKey] = uid;
-            this.User = new UserIdentity()
+            this.userIdentity = new UserIdentity()
             {
                 Id = uid
             };
@@ -25,13 +37,7 @@
         protected void SignOut(string uid)
         {
             this.Request.Session.Remove(uid);
-            this.User = new();
-        }
-
-        protected Controller(HttpRequest request)
-        {
-            this.Request = request;
-            this.User = this.Request.Session.ContainsKey(UserSessionKey) ? new UserIdentity() { Id = this.Request.Session[UserSessionKey] } : new(); 
+            this.userIdentity = new();
         }
 
         protected ActionResult Text(string text)
