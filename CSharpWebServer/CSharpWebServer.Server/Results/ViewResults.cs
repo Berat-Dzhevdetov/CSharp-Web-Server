@@ -88,7 +88,6 @@
                     loopModelName = line
                         .Split()
                         .SkipWhile(l => l.Contains("var"))
-                        .Skip(2)
                         .FirstOrDefault();
 
                     if (loopModelName == null)
