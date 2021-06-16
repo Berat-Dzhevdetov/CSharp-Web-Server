@@ -10,7 +10,7 @@
         {
             const string cookieName = "uid";
 
-            if (!this.Request.Cookies.ContainsKey(cookieName))
+            if (!this.Request.Cookies.Contains(cookieName))
             {
                 return new UnauthorizedResult(this.Response);
             }
@@ -20,8 +20,8 @@
 
         public ActionResult SetCookieToSeeCats()
         {
-            this.Response.AddCookie("uid", "15");
-            this.Response.AddCookie("lang", "en");
+            this.Response.Cookies.Add("uid", "15");
+            this.Response.Cookies.Add("lang", "en");
             return Redirect("/cats");
         }
 
@@ -30,8 +30,8 @@
             const string nameKey = "Name";
             const string Age = "Age";
             var query = Request.Query;
-            var dogName = query.ContainsKey(nameKey) ? query[nameKey] : "";
-            var dogAge = query.ContainsKey(Age) ? query[Age] : "";
+            var dogName = query.Contains(nameKey) ? query[nameKey] : "";
+            var dogAge = query.Contains(Age) ? query[Age] : "";
 
 
             return View(new { Name = dogName,Age = dogAge });

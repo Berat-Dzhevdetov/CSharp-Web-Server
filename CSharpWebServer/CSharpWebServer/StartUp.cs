@@ -1,19 +1,19 @@
 ﻿namespace WebServer
 {
-    using System.Threading.Tasks;
+    using CSharpWebServer.Data;
     using CSharpWebServer.Server;
-    using CSharpWebServer.Controllers;
     using CSharpWebServer.Server.Controllers;
+    using System.Threading.Tasks;
     public class StartUp
     {
+        // http://localhost:1234/
         public static async Task Main()
-        {
-            // http://localhost:1234/
-            var server = new HttpServer(
-                    routes => routes
-                    .MapStaticFiles()
-                    .MapControllers());
-            await server.Start();
-        }
+        => await HttpServer
+            .WithRoutes(routes => routes
+                .MapStaticFiles()
+                .MapControllers())
+            .WithServices(services => services
+                .Add<IData, ApplicationDbContext>())
+            .Start();
     }
 }

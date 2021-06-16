@@ -2,6 +2,7 @@
 {
     using CSharpWebServer.Server.Http;
     using CSharpWebServer.Server.Routing;
+    using CSharpWebServer.Server.Services;
     using System;
     using System.Net;
     using System.Net.Sockets;
@@ -12,56 +13,82 @@
         private readonly IPAddress ipAddress;
         private readonly int port;
         private readonly TcpListener listener;
-        private readonly RoutingTable routingTable;
 
-        public HttpServer(string ipAddress, int port, Action<IRoutingTable> routingTableConfiguration)
+        private readonly RoutingTable routingTable;
+        private readonly ServiceCollection serviceCollection;
+
+        private HttpServer(string ipAddress, int port, IRoutingTable routingTable)
         {
             this.ipAddress = IPAddress.Parse(ipAddress);
             this.port = port;
 
-            this.listener = new TcpListener(this.ipAddress, this.port);
-            this.routingTable = new();
+            listener = new TcpListener(this.ipAddress, port);
+
+            this.routingTable = (RoutingTable)routingTable;
+
+            this.serviceCollection = new ServiceCollection();
+        }
+
+        private HttpServer(int port, IRoutingTable routingTable)
+            : this("127.0.0.1", port, routingTable)
+        {
+        }
+
+        private HttpServer(IRoutingTable routingTable)
+            : this(5000, routingTable)
+        {
+        }
+
+        public static HttpServer WithRoutes(Action<IRoutingTable> routingTableConfiguration)
+        {
+            var routingTable = new RoutingTable();
+
             routingTableConfiguration(routingTable);
+
+            var httpServer = new HttpServer(routingTable);
+
+            return httpServer;
         }
 
-        public HttpServer(int port, Action<IRoutingTable> routingTable) : this("127.0.0.1", port, routingTable)
+        public HttpServer WithServices(Action<IServiceCollection> serviceCollectionConfiguration)
         {
-        }
+            serviceCollectionConfiguration(this.serviceCollection);
 
-        public HttpServer(Action<IRoutingTable> routingTable) : this(4000, routingTable)
-        {
+            return this;
         }
 
         public async Task Start()
         {
-            listener.Start();
+            this.listener.Start();
 
             Console.WriteLine($"Server started on port {port}...");
-            Console.WriteLine("Awaiting for requests...");
+            Console.WriteLine("Listening for requests...");
 
             while (true)
             {
-                var connection = await listener.AcceptTcpClientAsync();
+                var connection = await this.listener.AcceptTcpClientAsync();
+
                 _ = Task.Run(async () =>
                 {
                     var networkStream = connection.GetStream();
+
                     var requestText = await this.ReadRequest(networkStream);
 
                     try
                     {
-                        var request = HttpRequest.Parse(requestText);
+                        var request = HttpRequest.Parse(requestText, this.serviceCollection);
 
                         var response = this.routingTable.ExecuteRequest(request);
 
-                        this.PrepareSession(response, request);
+                        this.PrepareSession(request, response);
 
-                        this.LogPipeLine(request, response.ToString());
+                        this.LogPipeline(requestText, response.ToString());
 
-                        await this.WriteResponse(networkStream, response);
+                        await WriteResponse(networkStream, response);
                     }
-                    catch (Exception ex)
+                    catch (Exception exception)
                     {
-                        await HandleError(ex, networkStream);
+                        await HandleError(networkStream, exception);
                     }
 
                     connection.Close();
@@ -73,34 +100,51 @@
         {
             var bufferLength = 1024;
             var buffer = new byte[bufferLength];
-            var totalBytesRead = 0;
+
+            var totalBytes = 0;
+
             var requestBuilder = new StringBuilder();
 
             do
             {
                 var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLength);
-                if (bytesRead == 0) break;
 
-                totalBytesRead += bytesRead;
+                totalBytes += bytesRead;
 
-                if (totalBytesRead > 10 * 1024)
+                if (totalBytes > 10 * 1024)
                 {
-                    //TODO: throw new TooLargeRequestException
-                    throw new TimeoutException();
+                    throw new InvalidOperationException("Request is too large.");
                 }
-                requestBuilder.AppendLine(Encoding.UTF8.GetString(buffer, 0, bytesRead));
-            } while (networkStream.DataAvailable);
-            return requestBuilder.ToString().Trim();
+
+                requestBuilder.Append(Encoding.UTF8.GetString(buffer, 0, bytesRead));
+            }
+            while (networkStream.DataAvailable);
+
+            return requestBuilder.ToString();
         }
 
-        private async Task HandleError(Exception ex, NetworkStream networkStream)
+        private void PrepareSession(HttpRequest request, HttpResponse response)
         {
-            var errorMsg = $"{ex.Message} {Environment.NewLine} {ex.StackTrace}";
-            var errorResponse = HttpResponse.ForError(errorMsg);
-            await this.WriteResponse(networkStream, errorResponse);
+            if (request.Session.IsNew)
+            {
+                response.Cookies.Add(HttpSession.SessionCookieName, request.Session.Id);
+
+                request.Session.IsNew = false;
+            }
         }
 
-        private void LogPipeLine(HttpRequest request, string response)
+        private async Task HandleError(
+            NetworkStream networkStream,
+            Exception exception)
+        {
+            var errorMessage = $"{exception.Message}{Environment.NewLine}{exception.StackTrace}";
+
+            var errorResponse = HttpResponse.ForError(errorMessage);
+
+            await WriteResponse(networkStream, errorResponse);
+        }
+
+        private void LogPipeline(string request, string response)
         {
             var separator = new string('-', 50);
 
@@ -108,16 +152,23 @@
 
             log.AppendLine();
             log.AppendLine(separator);
-            log.AppendLine("Request:");
-            log.AppendLine(request.ToString());
+
+            log.AppendLine("REQUEST:");
+            log.AppendLine(request);
+
             log.AppendLine();
-            log.AppendLine("Response:");
+
+            log.AppendLine("RESPONSE:");
             log.AppendLine(response);
 
-            Console.WriteLine(log.ToString());
+            log.AppendLine();
+
+            Console.WriteLine(log);
         }
 
-        private async Task WriteResponse(NetworkStream networkStream, HttpResponse response)
+        private async Task WriteResponse(
+            NetworkStream networkStream,
+            HttpResponse response)
         {
             var responseBytes = Encoding.UTF8.GetBytes(response.ToString());
 
@@ -126,15 +177,6 @@
             if (response.HasContent)
             {
                 await networkStream.WriteAsync(response.Content);
-            }
-        }
-
-        private void PrepareSession(HttpResponse response, HttpRequest request)
-        {
-            if (request.Session.IsNew)
-            {
-                response.AddCookie(HttpSession.SessionCookieName, request.Session.Id);
-                request.Session.IsNew = false;
             }
         }
     }

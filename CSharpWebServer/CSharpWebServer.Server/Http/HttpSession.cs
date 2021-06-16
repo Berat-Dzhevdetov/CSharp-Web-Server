@@ -29,7 +29,7 @@
             set => this.data[key] = value;
         }
 
-        public bool ContainsKey(string key)
+        public bool Contains(string key)
             => this.data.ContainsKey(key);
 
         public void Remove(string key)
