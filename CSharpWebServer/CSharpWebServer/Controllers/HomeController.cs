@@ -11,7 +11,9 @@
         private readonly IData data;
 
         public HomeController(IData data)
-            => this.data = data;
+        {
+            this.data = data;
+        }
 
         public ActionResult Index()
         {
@@ -23,8 +25,6 @@
         }
         public HttpResponse All()
         {
-            var data = new ApplicationDbContext();
-
             var users = data.Users.ToList();
             return View(users);
         }

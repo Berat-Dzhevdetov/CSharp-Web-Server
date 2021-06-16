@@ -1,0 +1,10 @@
+﻿<h1>All users</h1>
+
+<ul>
+    @foreach(var user in Model)
+    {
+    <li>
+        @user.Firstname @user.Lastname - @user.Age
+    </li>
+    }
+</ul>
